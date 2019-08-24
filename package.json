@@ -1,7 +1,7 @@
 {
-  "name": "my-component",
-  "version": "1.0.0",
-  "description": "my-component React component",
+  "name": "react-autocomplete-test",
+  "version": "0.1.2",
+  "description": "Auto Complete React component",
   "main": "lib/index.js",
   "module": "es/index.js",
   "files": [
@@ -19,7 +19,13 @@
     "test:coverage": "nwb test-react --coverage",
     "test:watch": "nwb test-react --server"
   },
-  "dependencies": {},
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "jquery": "^3.4.1",
+    "moment": "^2.24.0",
+    "moment-range": "^4.0.2",
+    "styled-components": "^4.3.2"
+  },
   "peerDependencies": {
     "react": "16.x"
   },
@@ -28,11 +34,15 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   },
-  "author": "",
+  "author": "SarmadBilal",
   "homepage": "",
-  "license": "MIT",
+  "license": "ISC",
   "repository": "",
   "keywords": [
-    "react-component"
+    "react-auto-complete",
+    "react-autocomplete",
+    "react-autocomplete-custom",
+    "react-autocomplete-input",
+    "react-autocomplete-component"
   ]
 }
