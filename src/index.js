@@ -29,7 +29,7 @@ input {
   background-color: #f1f1f1;
   padding: 10px;
   font-size: 16px;
-
+  width: 100%;
 }
 
 

@@ -6,6 +6,10 @@
 React Autocomplete for input field, all styles are fully customizable.
 In which you coould modify or customize the options JSX and any of the css you want.
 
+### Example
+
+![](https://raw.githubusercontent.com/bilal114/react-autocomplete-select/master/screen-capture-_6_.gif)
+
 ### Instalation & Configuration
 
 > `npm install --save react-autocomplete-select`
@@ -277,7 +281,7 @@ input[type=text] {
 ```
 ##### Description  <globalStyle> : 
         you could modify or override any of the above default provided css....
-        
+
 ### Server Side Axios Search Data Example
 you client side Autocomplete code goes here
 ```javascript
