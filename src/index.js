@@ -1,32 +1,103 @@
 import React, {Component,Fragment} from 'react'
-import $ from 'jquery'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import 'bootstrap/dist/css/bootstrap.min.css';
+
 // import './moment.js';
-import './style.css';
+// import './style.css';
 import OptionsParent from './OptionsParent';
 import Options from './Options';
 import autocomplete,{initiate} from './scripts.js';
 import styled,{createGlobalStyle} from 'styled-components';
 import PropTypes from 'prop-types'
 import axios from 'axios'
+import withForwardedRef from './withForwardedRef'
 
-let countries = ["Afghanistan","Albania","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central Arfrican Republic","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cuba","Curacao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauro","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States of America","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
+const GlobalStyle = createGlobalStyle`
+  * {
+  box-sizing: border-box;
+}
+
+body {
+  font: 16px Arial;  
+}
+
+/*the container must be positioned relative:*/
+.autocomplete {
+  position: relative;
+  display: inline-block;
+  width:300px;
+}
+
+input {
+  border: 1px solid transparent;
+  background-color: #f1f1f1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+input[type=text] {
+  background-color: #f1f1f1;
+  width: 100%;
+}
 
 
-export default Object.assign( class extends Component {
+/*Dropdown options container css*/
+.___optionsDiv___ {
+
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+
+/*Dropdown options each div css*/
+.___optionsDiv___ div {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff; 
+  border-bottom: 1px solid #d4d4d4; 
+}
+
+/*Dropdown options each div on hover css*/
+
+.___optionsDiv___ div:hover {
+    background-color: #e9e9e9; 
+}
+
+
+/*when navigating through the items using the arrow keys:*/
+.autocomplete-active {
+  background-color: DodgerBlue !important; 
+  color: #ffffff; 
+}
+
+  ${props => props.globalStyle}
+`;
+
+export default Object.assign( withForwardedRef(class extends Component {
 
 	state = {
 
+
 		inputValue : "",
 		currentActiveValue : "",
-		data : [],
+		itemsData : [],
 		searchData: [],
-		urlData : [],
-		searchPattern: "startsWith",
+		searchPattern: "containsString",
 		placeholder : "Search",
 		selectOnBlur : false,
-		axiosConfig : false
+		axiosConfig : false,
+		onChange: false,
+		onSelect : false,
+		maxOptionsLimit : 10,
+		getItemValue: false,
+		ref: false,
+		searchEnabled : false,
+		optionsJSX : false,
 	}
 
 	currentFocus = -1;
@@ -37,23 +108,26 @@ export default Object.assign( class extends Component {
 
 	componentDidMount() {
 
-		// let countries = ["Afghanistan","Albania","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central Arfrican Republic","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cuba","Curacao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauro","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States of America","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
-
-		// this.autocomplete(this.inputRef.current,countries)
+		this.inputRef = this.props.forwardedRef;
 
 	}
 
 static getDerivedStateFromProps(props, state) {
 
-	// console.log(props,state,' props and state is here............')
-
 	const propsToBeState = [
 								'searchPattern',
 								'data',
-								'urlForData',
 								'placeholder',
 								'axiosConfig',
-								'selectOnBlur'
+								'selectOnBlur',
+								'onChange',
+								'onSelect',
+								'getItemValue',
+								'itemsData',
+								'ref',
+								'searchEnabled',
+								'optionsJSX',
+
 
 							];
 	let stateObj = {};
@@ -65,7 +139,10 @@ static getDerivedStateFromProps(props, state) {
 
 
 
+
 	})
+
+	
 
 	return stateObj;	
 }
@@ -74,17 +151,24 @@ static getDerivedStateFromProps(props, state) {
 	optionRefs = [];
 
 	setRef = (ref) => {
+		
 		this.optionRefs.push(ref);
 	}
-	closeAllLists = (elmnt) => {
+	closeAllItems = (withObject={},toBeCalled=()=>{}) => {
 
 				setTimeout(()=>{
 
         			this.setState({
 						...this.state,
+						...withObject,
 		    			searchData : []
+		    		},()=> {
+		    			toBeCalled();
 		    		})
 			    },1)
+
+			    this.optionRefs = [];
+			    this.currentFocus = -1;
 		 	
 	}
 
@@ -94,13 +178,10 @@ static getDerivedStateFromProps(props, state) {
 
 		for (var i = 0; i < this.optionRefs.length; i++) {
 
-	      	this.optionRefs[i] && this.optionRefs[i].addEventListener('click',(e)=>{
+	      	this.optionRefs[i] && this.optionRefs[i].addEventListener('mousedown',(e)=>{
 
-		      	this.setState({
-					...this.state,
-					inputValue : e.target.textContent,
-					searchData : []
-				})
+	      		
+				this.closeAllItems({inputValue:e.target.textContent,currentActiveValue:e.target.textContent},this.onSelect);
 
 	      	});
 	    }
@@ -109,20 +190,15 @@ static getDerivedStateFromProps(props, state) {
 
 	onBlur = () => {
 
-		let stateObj;
+		
 
 		if(this.state.selectOnBlur)
-			stateObj = {
-				inputValue : this.state.currentActiveValue,
-				searchData : []
-			};
+			this.closeAllItems({inputValue:this.state.currentActiveValue},this.onSelect);
 		else
-			stateObj = { searchData : [] };
+			setTimeout(() => {
+				this.closeAllItems({currentActiveValue:this.state.inputValue},this.onChange);
+			},1)
 			
-			this.setState({
-				...this.state,
-				...stateObj
-			})
 
 	}
 
@@ -137,8 +213,14 @@ static getDerivedStateFromProps(props, state) {
 
 	}
 
+
+
 	addActive = () => {
 
+		/*remove null values*/
+		this.optionRefs = this.optionRefs.filter((val)=>{
+			return (val)?val:false
+		});
 	    /*start by removing the "active" class on all items:*/
 	    let currentActiveValue;
 
@@ -149,12 +231,16 @@ static getDerivedStateFromProps(props, state) {
     	if(this.currentFocus==-1 || this.currentFocus===this.optionRefs.length)
 	    	currentActiveValue = this.state.inputValue;
 	    else
-	    	currentActiveValue = this.optionRefs[this.currentFocus].textContent;
+	    	currentActiveValue = (this.optionRefs[this.currentFocus] && this.optionRefs[this.currentFocus].textContent) || this.state.inputValue;
 
 	    	this.setState({
 	    		...this.state,
 	    		currentActiveValue
 
+	    	},()=> {
+	    		/* now calling onChange method  */
+	    		
+	    			this.onChange();
 	    	})
 
 
@@ -164,85 +250,161 @@ static getDerivedStateFromProps(props, state) {
 		}
 	}
 
+	/* handling user level methods*/
 
-	removeActive = (x) => {
+	onChange = () => {
+
+		if(this.state.onChange)
+			this.state.onChange(this.state.currentActiveValue);
+
+	}
+
+	onSelect = () => {
+
+		if(this.state.onSelect)
+			this.state.onSelect(this.state.inputValue);
+
+		this.onChange();
+	}
+
+	removeActive = () => {
 
 	    /*a function to remove the "active" class from all autocomplete items:*/
 	    for (var i = 0; i < this.optionRefs.length; i++) {
 	      this.optionRefs[i] && this.optionRefs[i].classList.remove("autocomplete-active");
 	    }
 	}
-	isSearched = () => {
+	isSearched = (value,inpValue) => {
+
+		value = value.toString().toUpperCase();
+		inpValue = inpValue.toString().toUpperCase();
+
+		if(this.state.searchPattern==='containsString' && value.indexOf(inpValue)>-1)
+			return value;
+
+		if(this.state.searchPattern==='containsLetter'){
+
+			let letters = inpValue.split('');
+
+			let response = value;
+			for (let i = 0; i < letters.length; i++) {
+				
+				if(!(value.indexOf(letters[i])>-1))
+				{
+					response = false;
+					break;
+				}
+				
+			}
+			
+			return response;
+		}
+
+		if(this.state.searchPattern==='startsWith' && value.substr(0, inpValue.length) == inpValue)
+			return value;
+
+		if(this.state.searchPattern==='endsWith' && value.substr(-(inpValue.length) ) == inpValue)
+			return value;
 
 	}
 
-	makeAxiosRequest = () => {
+	makeAxiosRequest = (inputValue) => {
 
-		let axiosConfig = this.state.axiosConfig && this.state.axiosConfig();
-			console.log(axiosConfig)
+		let axiosConfig = this.state.axiosConfig && this.state.axiosConfig(inputValue);
+			
+			let self = this;
+
 		if(axiosConfig instanceof Object)
+		{
 			axios(axiosConfig).then((res)=>{
 
-				console.log(JSON.parse(res.data),res,' axios responded data mmmmmmmmmmmmmmmmmmmmmmm');
+				this.setData(res.data,inputValue);
+				
+
 			}).catch((err)=> {
-				console.log(err,' error occured. aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+				console.log(err,' error occured.')
 			})
 
-		return false;
+			return true;
+		}
+		else
+			return false;
+
 	}
 	onInput = () => {
 
-			let inp = this.inputRef.current,optionsLimit=10;
-		  	let storeInState = [],i,val=inp.value;
-			this.setState({...this.state,inputValue: inp.value,currentActiveValue: inp.value});
-	      	/*close any already open lists of autocompleted values*/
-	      	this.closeAllLists();
+			let inp = this.inputRef.current;
 
-	      	if (!val) { return false;}
+		  	let storeInState = [],i,val=inp.value;
+			
+			
+	      	/*close any already open item of autocompleted values*/
+	      	this.closeAllItems({inputValue: inp.value,currentActiveValue: inp.value},this.onChange);
+
 	      	
-	      	if(!this.makeAxiosRequest())
+	      	if(!val || (!this.makeAxiosRequest(val) && this.state.itemsData.length===0) )
 	      		return;
 
 	      	/*for each item in the array...*/
-		    for (i = 0; i<countries.length; i++) {
-		        /*check if the item starts with the same letters as the text field value:*/
-		        if (countries[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-		          	
-		        	if(storeInState.length<optionsLimit)
-			        {
 
-			        	storeInState.push(countries[i]);
-			        	// console.log(storeInState.length,optionsLimit)
-			          
-			        }
-		        }
-		    }
+	      	this.setData(this.state.itemsData,val);
 
-		    
+	}
+
+	setData = (dataToMakeSearch,inpValue,type) => {
+
+			let storeInState = [];
+			if(type==='axios' && !this.state.searchEnabled );
+			else
+			storeInState = this.makeLocalSearch(dataToMakeSearch,inpValue);
+	    
 		    setTimeout(()=>{
 
-		    		// console.log(storeInState);
-        			this.setState({
+					this.setState({
 						...this.state,
 		    			searchData : storeInState
 		    		},()=>{
 
-		    			// console.log(this.optionRefs[0]);
+		    			
 
 		    			this.addClickEventListener();
 		    		})
 			    },1)
+
 	}
 
+	makeLocalSearch = (dataToMakeSearch,inpValue,storeInState=[]) => {
+
+
+				for (let i = 0; i<dataToMakeSearch.length; i++) {
+			        /*check if the item starts with the same letters as the text field value:*/
+
+
+			        if ( this.isSearched(this.state.getItemValue(dataToMakeSearch[i]),inpValue)) {
+			          	
+			        	if(storeInState.length<this.state.maxOptionsLimit)
+				        {
+
+				        	storeInState.push(dataToMakeSearch[i]);
+				          
+				        }
+			        }
+			    }
+
+			    return storeInState;
+
+	}
 
 	onKeyDown = (e) => {
 
+		
 		let inp = this.inputRef.current;
-		      let {currentFocus} = this.state; 
+		      // let {currentFocus} = this.state; 		      
+		      if(this.optionRefs.length===0) return;
 		      if (e.keyCode == 40) {
 		        /*If the arrow DOWN key is pressed,
 		        increase the currentFocus variable:*/
-		        if(this.state.data.length>0)
+		        if(this.state.searchData.length>0)
 			    {
 		        	this.currentFocus++;
 		        	this.addActive();
@@ -251,7 +413,7 @@ static getDerivedStateFromProps(props, state) {
 		        /*If the arrow UP key is pressed,
 		        decrease the currentFocus variable:*/
 			        
-	        	if(this.state.data.length>0)
+	        	if(this.state.searchData.length>0)
 	        	{
 	        		this.currentFocus--;
 	        		this.addActive();
@@ -259,17 +421,19 @@ static getDerivedStateFromProps(props, state) {
 		      } else if (e.keyCode == 13) {
 		        /*If the ENTER key is pressed, prevent the form from being submitted,*/
 		        e.preventDefault();
-		        // console.log(this.currentFocus,' currentFocus',this.state)
-		        if (this.currentFocus > -1) {
+		        
+		        if (this.currentFocus > -1 && this.optionRefs.length>0 && this.optionRefs[this.currentFocus]) {
 		        	/*and simulate a click on the "active" item:*/
-		          if (this.optionRefs.length>0) this.optionRefs[this.currentFocus].click();
+		        	let event = new Event('mousedown');
+		            this.optionRefs[this.currentFocus].dispatchEvent(event);
 		        }
 		        else
-		        	this.onBlur();
+		        	this.closeAllItems({...this.state},this.onSelect);
 		      }
+
 	}
 	
-	onChange = (e) => {
+	handleChange = (e) => {
 		
 		let value = e.target.value;
 
@@ -282,25 +446,26 @@ static getDerivedStateFromProps(props, state) {
 	}
   render() {	
 
-  		console.log(this.state);
+  		
+
     return (
     	<Fragment>
-    	
+
 		<form autoComplete="off" >
-		  <div className="autocomplete" >
-		    <input ref={this.inputRef} onBlur={this.onBlur} onFocus={this.onFocus} onInput={this.onInput} value = {this.state.currentActiveValue} onChange={this.onChange} onKeyDown={this.onKeyDown}  id="myInput" type="text" name="myCountry" placeholder="Country"/>
+		  <div className="autocomplete"  >
+		    <input ref={this.props.forwardedRef || this.inputRef} onBlur={this.onBlur}  onFocus={this.onFocus} onInput={this.onInput} value = {this.state.currentActiveValue} onChange={this.handleChange} onKeyDown={this.onKeyDown}  id="myInput" type="text" name="myCountry" placeholder={this.state.placeholder}/>
 		  	<OptionsParent >
 		  		{ this.state.searchData.map((val,key) => {
 
-		  			return	<Options ref={this.setRef} JSX={(value)=>value} key={key} value={val}  />
+		  			return	 key<=this.state.maxOptionsLimit? <Options ref={this.setRef} JSX={this.state.optionsJSX || ((value)=>value) } key={key} value={this.state.getItemValue(val)}  /> : null
 		  		})}
 		  	</OptionsParent>
 		  </div>		
 		</form>
-
+		<GlobalStyle globalStyle={this.props.globalStyle} />
     </Fragment>)
   }
-},
+}),
 
-{propTypes: { searchPattern: PropTypes.oneOf(['startsWith','endsWith','containsWord','containsLetter']) }}
+{propTypes: { searchPattern: PropTypes.oneOf(['startsWith','endsWith','containsString','containsLetter']) }}
 );

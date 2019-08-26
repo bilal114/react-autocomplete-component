@@ -1,5 +1,5 @@
 import React, {Component,Fragment} from 'react';
-import './style.css';
+// import './style.css';
 export default class OptionsParent extends Component {
 
 	

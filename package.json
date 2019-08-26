@@ -1,6 +1,6 @@
 {
-  "name": "react-autocomplete-test",
-  "version": "0.1.2",
+  "name": "react-autocomplete-select",
+  "version": "0.1.4",
   "description": "Auto Complete React component",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -21,10 +21,6 @@
   },
   "dependencies": {
     "axios": "^0.19.0",
-    "bootstrap": "^4.3.1",
-    "jquery": "^3.4.1",
-    "moment": "^2.24.0",
-    "moment-range": "^4.0.2",
     "prop-types": "^15.7.2",
     "styled-components": "^4.3.2"
   },
@@ -39,12 +35,17 @@
   "author": "SarmadBilal",
   "homepage": "",
   "license": "ISC",
-  "repository": "",
+  "repository": "https://github.com/bilal114/react-autocomplete-select",
   "keywords": [
     "react-auto-complete",
     "react-autocomplete",
     "react-autocomplete-custom",
     "react-autocomplete-input",
-    "react-autocomplete-component"
+    "react-autocomplete-component",
+    "react-auto-complete-component",
+    "react-auto-complete-input",
+    "react-auto-complete-custom",
+    "react-autocomplete-select",
+    "react-auto-complete-select"
   ]
 }
