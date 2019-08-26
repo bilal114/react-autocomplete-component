@@ -1,10 +1,7 @@
 import React, {Component,Fragment} from 'react'
 
-// import './moment.js';
-// import './style.css';
 import OptionsParent from './OptionsParent';
 import Options from './Options';
-import autocomplete,{initiate} from './scripts.js';
 import styled,{createGlobalStyle} from 'styled-components';
 import PropTypes from 'prop-types'
 import axios from 'axios'
@@ -17,6 +14,7 @@ const GlobalStyle = createGlobalStyle`
 
 body {
   font: 16px Arial;  
+  backgroundColor : 'black'
 }
 
 /*the container must be positioned relative:*/
@@ -31,12 +29,9 @@ input {
   background-color: #f1f1f1;
   padding: 10px;
   font-size: 16px;
+
 }
 
-input[type=text] {
-  background-color: #f1f1f1;
-  width: 100%;
-}
 
 
 /*Dropdown options container css*/
@@ -98,6 +93,7 @@ export default Object.assign( withForwardedRef(class extends Component {
 		ref: false,
 		searchEnabled : false,
 		optionsJSX : false,
+		inputJSX : false
 	}
 
 	currentFocus = -1;
@@ -108,6 +104,7 @@ export default Object.assign( withForwardedRef(class extends Component {
 
 	componentDidMount() {
 
+		if(this.props.forwardedRef)
 		this.inputRef = this.props.forwardedRef;
 
 	}
@@ -127,6 +124,7 @@ static getDerivedStateFromProps(props, state) {
 								'ref',
 								'searchEnabled',
 								'optionsJSX',
+								'inputJSX',
 
 
 							];
@@ -276,6 +274,7 @@ static getDerivedStateFromProps(props, state) {
 	}
 	isSearched = (value,inpValue) => {
 
+				if(!value) return;
 		value = value.toString().toUpperCase();
 		inpValue = inpValue.toString().toUpperCase();
 
@@ -444,16 +443,37 @@ static getDerivedStateFromProps(props, state) {
 		})
 
 	}
-  render() {	
 
-  		
+	inputJSX = () => {
+
+		let obj = {
+
+			ref : this.props.forwardedRef || this.inputRef,
+			onBlur : this.onBlur,
+			onFocus : this.onFocus,
+			onInput : this.onInput,
+			value : this.state.currentActiveValue,
+			onChange : this.handleChange,
+			onKeyDown : this.onKeyDown,
+			type : 'text',
+			placeholder : this.state.placeholder
+
+		}
+
+		if(this.state.inputJSX)
+			return this.state.inputJSX(obj);
+
+		return (<input {...obj}/>);
+	}
+
+  render() {	
 
     return (
     	<Fragment>
 
 		<form autoComplete="off" >
 		  <div className="autocomplete"  >
-		    <input ref={this.props.forwardedRef || this.inputRef} onBlur={this.onBlur}  onFocus={this.onFocus} onInput={this.onInput} value = {this.state.currentActiveValue} onChange={this.handleChange} onKeyDown={this.onKeyDown}  id="myInput" type="text" name="myCountry" placeholder={this.state.placeholder}/>
+		    {this.inputJSX()}
 		  	<OptionsParent >
 		  		{ this.state.searchData.map((val,key) => {
 
@@ -467,5 +487,20 @@ static getDerivedStateFromProps(props, state) {
   }
 }),
 
-{propTypes: { searchPattern: PropTypes.oneOf(['startsWith','endsWith','containsString','containsLetter']) }}
+{propTypes: { 
+				searchPattern: PropTypes.oneOf(['startsWith','endsWith','containsString','containsLetter']),
+				getItemValue: PropTypes.func.isRequired ,
+				itemsData: PropTypes.array.isRequired,
+				inputJSX: PropTypes.func,
+				optionsJSX: PropTypes.func,
+				maxOptionsLimit: PropTypes.number,
+				searchEnabled: PropTypes.bool,
+				selectOnBlur: PropTypes.bool,
+				ref: PropTypes.object,
+				onChange: PropTypes.func,
+				onSelect: PropTypes.func,
+				axiosConfig: PropTypes.func,
+				placeholder: PropTypes.string,
+
+			}},
 );

@@ -1,6 +1,6 @@
 {
   "name": "react-autocomplete-select",
-  "version": "0.1.4",
+  "version": "0.1.7",
   "description": "Auto Complete React component",
   "main": "lib/index.js",
   "module": "es/index.js",

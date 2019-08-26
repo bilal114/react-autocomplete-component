@@ -2,6 +2,8 @@ import React, {Component} from 'react'
 import {render} from 'react-dom'
 
 import Autocomplete from '../../src'
+import './w3.css';
+import './icon.css';
 
 class Demo extends Component {
 
@@ -13,7 +15,7 @@ class Demo extends Component {
 
   componentDidMount(){
 
-    console.log(this.inputRef.current.focus());
+    // this.inputRef.current.focus();
   }
 
   componentDidUpdate(){
@@ -28,42 +30,76 @@ class Demo extends Component {
      
       	<Autocomplete 
 
-          ref={this.inputRef}
-          searchPattern={'containsString'}
-          selectOnBlur = {false}
-          axiosConfig = {(inputFieldValue) => ({
-            url : `http://local.cuddlynest.com/autocomplete.php?query=${inputFieldValue}`
-          }) }
-          placeholder = "Search Here"
-          onChange = {(changedValue)=>{ this.setState({ changedValue: changedValue }); console.log(' so here comes the changed vlaue ......',changedValue)}}
-          onSelect = {(selectedValue)=>{ console.log(' so here comes the selected vlaue ......',selectedValue)}}
-          getItemValue={(item)=>{ return item.name }}
-          itemsData = {[ 
+        getItemValue = {(item)=>item.country }
+        itemsData = {
+          [ 
+                       {
+                         "country": "United State"
+                       },
+                       {
+                         "country": "United Kingdom"
+                       },
+                       
+                       {
+                         "country": "Canada"
+                       },
+                       {
+                         "country": "Australia"
+                       },
+                       {
+                         "country": "New Zealand"
+                       }
+                     ]
+        }
 
-    {
-      "name": "Afghanistan"
-    },
+        inputJSX = {(props) => <div className="mainSearchInputContainer"><i className="material-icons">search</i><input {...props} className="inputClass" /></div> }
 
-    {
-      "name": "Albania"
-    },
+        globalStyle = " 
 
-    {
-      "name": "Ac"
-    },
+            .mainSearchInputContainer {
 
-    {
-      "name": "Acderf"
-    },
+              background: #FFFFFF;
+              border: 1px solid #DCDADC;
+              box-sizing: border-box;
+              box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+              border-radius: 2px;
+              height:45px;
+            }
 
-    {
-      "name": "testing it"
-    }
 
-]}
-        maxOptionsLimit = {10}
-        searchEnabled = {true}
-        optionsJSX = { (value)=>value}
+            .material-icons {
+
+              position: absolute;
+              left: 1.94%;
+              right: 86.94%;
+              top: 29.41%;
+              bottom: 26.47%;
+              vertical-align:middle;
+              
+
+            }
+
+            .inputClass {
+              
+              position: absolute;
+              left: 9.81%;
+              right: 70.97%;
+              top: 17.65%;
+              bottom: 17.65%;
+
+
+              font-family: Fira Sans;
+              font-style: normal;
+              font-weight: normal;
+              font-size: 18px;
+              line-height: 22px;
+
+              background: #FFFFFF;
+              outline : none;
+              width: 265px;
+            }
+
+         "
         />
         
       	
