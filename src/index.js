@@ -188,19 +188,11 @@ static getDerivedStateFromProps(props, state) {
 	setInputDefaultVal = ()=> {
 
 		if(this.props.defaultInputValue && !this.state.currentActiveValue)
-		{
-			setTimeout(()=>{
-				this.setState({
+			setTimeout(()=>this.setState({
 				currentActiveValue: this.props.defaultInputValue,
 				inputValue : this.props.defaultInputValue
-			})
-				console.log('inside of settime out method')
-			},500)
-
-		}
-			console.log('inside of setInputDefaultVal method but out of if condition')
+			}),10)
 	}
-
 	onBlur = () => {
 
 		
