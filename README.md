@@ -4,7 +4,7 @@
 [![npm package][npm-badge]][npm]
 
 React Autocomplete for input field, all styles are fully customizable.
-In which you coould modify or customize the options JSX and any of the css you want.
+In which you could modify or customize the **options JSX** or add any kind of **input field's JSX** and any of the css to any element according to your need.
 
 ### Example
 
@@ -48,8 +48,13 @@ class Example extends Component {
       <h3>Autocomplete Demo</h3>
      
         <Autocomplete 
+        
 
-          ref={this.inputRef} // input field's ref prop
+          inputRef={this.inputRef} // being passed as input field's ref prop
+          // so you can handle it on your own 
+          // if you want to add animation or any other js stuff to it
+         
+         defaultInputValue = {'any string your choice'}
           
           searchPattern={'containsString'} // possible values are
           // ['containsString','containsLetter','startsWith','endsWith']
@@ -69,16 +74,16 @@ class Example extends Component {
           // then set searchEnabled = {true}
           **/
           
-          getItemValue={(item)=>{ return item.name }} /** get the value from 
+          getItemValue={(item)=>{ return item.country }} /** get the value from 
           // every element of array passed object 
           // e.g if data to make search on is this 
           // [{country: 'USA'},{country: 'UK'}] 
-          // then you will set this props just like this 
+          // then you will set this prop just like this 
           // getItemValue={(item)=>{ return item.country }}
           **/
         
         
-        optionsJSX = { (value)=><span>value</span>} // // custom option JSX ...
+        optionsJSX = { (value)=><span>value</span>} // custom option JSX ...
         // you can enclose the passed value in any valid jsx tags... 
         
           onChange = {
@@ -128,16 +133,17 @@ class Example extends Component {
 
           inputJSX = {(props) => <div className="mainSearchInputContainer"><i className="material-icons">search</i><input {...props} className="inputClass" /></div> }
           // must pass the {...props} to the input field
-          // and don't style any jsx element with style={{}} way instead
-          // assign className to any of the JSX element , because some of the stylings 
-          // does not get overridden like background color of input is not overridden
-          // by using style={{}} props...
-          // by giving className='whatever' style them in "globalStyle" props...
+          // and don't style any jsx element with style={{}} way, instead
+          // assign className to any of the JSX element , 
+          // because some of the stylings 
+          // does not get overridden like background color of input 
+          // is not overridden by using
+          //  style={{}} props or importing your style.css file and better
+          // you can use it by giving className='exampleClass' 
+          // then style them in "globalStyle" props...
 
         globalStyle = " 
-
             .mainSearchInputContainer {
-
               background: #FFFFFF;
               border: 1px solid #DCDADC;
               box-sizing: border-box;
@@ -145,8 +151,6 @@ class Example extends Component {
               border-radius: 2px;
               height:45px;
             }
-
-
             .material-icons {
 
               position: absolute;
@@ -155,10 +159,7 @@ class Example extends Component {
               top: 29.41%;
               bottom: 26.47%;
               vertical-align:middle;
-              
-
             }
-
             .inputClass {
               
               position: absolute;
@@ -190,6 +191,7 @@ class Example extends Component {
   
 
 ### Functional Guide
+
 | Property Name | Default | Description | Type| Short Example |
 | ------ | ------ | ------ | ------ | ------ |
 | onSelect : Optional | N/A | this method is called, when user selects the option from the dropdown | function| <Autocomplete onSelect= (selectedValue) => { // do whatever you want to do } | 
@@ -200,11 +202,12 @@ class Example extends Component {
 |selectOnBlur : Optional | false | selectOnBlur decides whether to select the active option or not when input is blured | boolean |`<Autocomplete selectOnBlur = {false} />` |
 |searchPattern : Optional | containsString | searchPattern decides the method of search | string< startsWith, endsWith, containsString, containsLetter> |`<Autocomplete |searchPattern={'containsString'} />` |
 |placeholder : Optional | Search |  placeholder for input field | string |`<Autocomplete placeholder = "Type to Search" />` |
-|ref : Optional | N/A | you can pass the ref prop to handle the input field like focus etc etc | Object<React.createRef> |`<Autocomplete ref={this.inputRef} />` |
+|inputRef : Optional | N/A | this property value should be of React.createRef() type and will be passed to input field as a ref prop so you can handle any js stuff like **focus or get or set input field value** | Object<React.createRef> |`<Autocomplete inputRef={this.inputRef} />` |
 |optionsJSX : Optional | N/A | you can make the option customized as you want by writing any valid JSX | function<JSX> |`<Autocomplete optionsJSX = { (value)=><span>value</span>} />` |
 |inputJSX : Optional | (props)=><input {...props} /> | you can make the input field fully customized as you want by writing any valid JSX, but try styling it by giving it className and then style it in **globalStyle** props | function<JSX> |`<Autocomplete inputJSX = { (props)=><input {...props} />} />` |
 |maxOptionsLimit : Optional | 10 | if we got thousands of records in our response or we have passed it in itemsData prop then we could limitize the data to be shown up to an extent e.g 10 | number |`<Autocomplete maxOptionsLimit = { 10 } />` |
 |searchEnabled : Optional | false | enable search on axios responded data | boolean |`<Autocomplete searchEnabled = {true} />` |
+|defaultInputValue : Optional | N/A | this default value shows up in the input field on **page load and on input field blur** | string |`<Autocomplete defaultInputValue = {'any string of your choice'} />` |
 
 
 
@@ -330,7 +333,7 @@ $data = ["Afghanistan","Albania","Azerbaijan","Bahamas","Bahrain","Bangladesh","
       
       if(strpos(strtolower($value), $searchQuery)===false);
       else
-        array_push($response, ['name' => $value]);
+        array_push($response, ['country' => $value]);
 
 
     }
@@ -340,6 +343,17 @@ $data = ["Afghanistan","Albania","Azerbaijan","Bahamas","Bahrain","Bangladesh","
 
 
 ```
+### Version Upgradation guide
+
+##### In version 0.1.9
+prop **ref={}** was replaced by **inputRef**
+
+##### In version 0.1.10
+A new prop was added 
+to show the default value if there is no value in the input field. it shows up
+in the input field on **page load and on input field blur**
+**defaultInputValue = {'any default value'}**
+
 
 [build-badge]: https://img.shields.io/travis/user/repo/master.png?style=flat-square
 [build]: https://travis-ci.org/user/repo

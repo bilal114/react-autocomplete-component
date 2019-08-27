@@ -5,8 +5,6 @@ import Options from './Options';
 import styled,{createGlobalStyle} from 'styled-components';
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import withForwardedRef from './withForwardedRef'
-
 const GlobalStyle = createGlobalStyle`
   * {
   box-sizing: border-box;
@@ -73,7 +71,7 @@ input {
   ${props => props.globalStyle}
 `;
 
-export default Object.assign( withForwardedRef(class extends Component {
+export default Object.assign( class extends Component {
 
 	state = {
 
@@ -90,10 +88,11 @@ export default Object.assign( withForwardedRef(class extends Component {
 		onSelect : false,
 		maxOptionsLimit : 10,
 		getItemValue: false,
-		ref: false,
+		inputRef: false,
 		searchEnabled : false,
 		optionsJSX : false,
-		inputJSX : false
+		inputJSX : false,
+		defaultInputValue: false
 	}
 
 	currentFocus = -1;
@@ -104,8 +103,10 @@ export default Object.assign( withForwardedRef(class extends Component {
 
 	componentDidMount() {
 
-		if(this.props.forwardedRef)
-		this.inputRef = this.props.forwardedRef;
+		if(this.props.inputRef)
+		this.inputRef = this.props.inputRef;
+
+		this.setInputDefaultVal();
 
 	}
 
@@ -121,10 +122,10 @@ static getDerivedStateFromProps(props, state) {
 								'onSelect',
 								'getItemValue',
 								'itemsData',
-								'ref',
+								'inputRef',
 								'searchEnabled',
 								'optionsJSX',
-								'inputJSX',
+								'inputJSX'
 
 
 							];
@@ -134,9 +135,6 @@ static getDerivedStateFromProps(props, state) {
 
 		if(propsToBeState.indexOf(key)>-1)
 			stateObj[key] = val;
-
-
-
 
 	})
 
@@ -152,7 +150,7 @@ static getDerivedStateFromProps(props, state) {
 		
 		this.optionRefs.push(ref);
 	}
-	closeAllItems = (withObject={},toBeCalled=()=>{}) => {
+	closeAllItems = (withObject={},...methodsToBeCalled) => {
 
 				setTimeout(()=>{
 
@@ -161,7 +159,8 @@ static getDerivedStateFromProps(props, state) {
 						...withObject,
 		    			searchData : []
 		    		},()=> {
-		    			toBeCalled();
+		    			methodsToBeCalled.forEach((methodToCall)=>methodToCall())
+		    			
 		    		})
 			    },1)
 
@@ -186,15 +185,23 @@ static getDerivedStateFromProps(props, state) {
 
 	}
 
+	setInputDefaultVal = ()=> {
+
+		if(this.props.defaultInputValue && !this.state.currentActiveValue)
+			setTimeout(()=>this.setState({
+				currentActiveValue: this.props.defaultInputValue,
+				inputValue : this.props.defaultInputValue
+			}),10)
+	}
 	onBlur = () => {
 
 		
 
 		if(this.state.selectOnBlur)
-			this.closeAllItems({inputValue:this.state.currentActiveValue},this.onSelect);
+			this.closeAllItems({inputValue:this.state.currentActiveValue},this.onSelect,this.setInputDefaultVal);
 		else
 			setTimeout(() => {
-				this.closeAllItems({currentActiveValue:this.state.inputValue},this.onChange);
+				this.closeAllItems({currentActiveValue:this.state.inputValue},this.onChange,this.setInputDefaultVal);
 			},1)
 			
 
@@ -447,8 +454,7 @@ static getDerivedStateFromProps(props, state) {
 	inputJSX = () => {
 
 		let obj = {
-
-			ref : this.props.forwardedRef || this.inputRef,
+			ref : this.props.inputRef || this.inputRef,
 			onBlur : this.onBlur,
 			onFocus : this.onFocus,
 			onInput : this.onInput,
@@ -463,11 +469,12 @@ static getDerivedStateFromProps(props, state) {
 		if(this.state.inputJSX)
 			return this.state.inputJSX(obj);
 
-		return (<input {...obj}/>);
+		return (<input  {...obj}/>);
 	}
 
   render() {	
 
+  	
     return (
     	<Fragment>
 
@@ -485,7 +492,7 @@ static getDerivedStateFromProps(props, state) {
 		<GlobalStyle globalStyle={this.props.globalStyle} />
     </Fragment>)
   }
-}),
+},
 
 {propTypes: { 
 				searchPattern: PropTypes.oneOf(['startsWith','endsWith','containsString','containsLetter']),
@@ -496,11 +503,12 @@ static getDerivedStateFromProps(props, state) {
 				maxOptionsLimit: PropTypes.number,
 				searchEnabled: PropTypes.bool,
 				selectOnBlur: PropTypes.bool,
-				ref: PropTypes.object,
+				inputRef: PropTypes.object,
 				onChange: PropTypes.func,
 				onSelect: PropTypes.func,
 				axiosConfig: PropTypes.func,
 				placeholder: PropTypes.string,
+				defaultInputValue: PropTypes.string,
 
 			}},
 );

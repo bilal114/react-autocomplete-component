@@ -15,22 +15,19 @@ class Demo extends Component {
 
   componentDidMount(){
 
-    // this.inputRef.current.focus();
-  }
-
-  componentDidUpdate(){
-
-    // console.log(this.inputRef.current);
+    this.inputRef.current.focus();
   }
 
 
   render() {
     return <div>
-      <h3>Autocomplete Demo</h3>
+      
      
       	<Autocomplete 
+        inputRef={this.inputRef}
 
         getItemValue = {(item)=>item.country }
+        defaultInputValue={'string of my choice'}
         itemsData = {
           [ 
                        {
